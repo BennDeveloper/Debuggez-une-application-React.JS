@@ -10,22 +10,24 @@ const Slider = () => {
   const byDateDesc = data?.focus.sort((evtA, evtB) =>
     new Date(evtA.date) < new Date(evtB.date) ? -1 : 1
   );
+
+  // Fonction pour mettre à jour l'image
   const nextCard = () => {
-    setTimeout(() => {
-      if (byDateDesc && byDateDesc.length > 0) {
-        setIndex(index < byDateDesc.length -1 ? index + 1 : 0);
-      }
-    }, 5000);
+    if (byDateDesc && byDateDesc.length > 0) {
+      setIndex((prevIndex) => (prevIndex < byDateDesc.length - 1 ? prevIndex + 1 : 0));
+    }
   };
+
   useEffect(() => {
-    nextCard();
-  });
+    const timer = setTimeout(nextCard, 5000); // Utiliser setTimeout pour définir la durée
+    return () => clearTimeout(timer); // Annuler le minuteur lors du démontage du composant ou lors du changement de index
+  }, [index, byDateDesc]); // Ajouter byDateDesc comme dépendance
+
   return (
     <div className="SlideCardList">
       {byDateDesc?.map((event, idx) => (
-        <>
+        <div key={event.id}>
           <div
-            key={event.title}
             className={`SlideCard SlideCard--${
               index === idx ? "display" : "hide"
             }`}
@@ -43,15 +45,16 @@ const Slider = () => {
             <div className="SlideCard__pagination">
               {byDateDesc.map((_, radioIdx) => (
                 <input
-                  key={`${event.id}`}
+                  key={byDateDesc[radioIdx].id}
                   type="radio"
                   name="radio-button"
-                  checked={idx === radioIdx}
+                  checked={index === radioIdx}
+                  onChange={() => setIndex(radioIdx)}
                 />
               ))}
             </div>
           </div>
-        </>
+        </div>
       ))}
     </div>
   );
