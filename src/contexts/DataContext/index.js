@@ -4,16 +4,17 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
 // Création du contexte avec une valeur par défaut pour last
 const DataContext = createContext({
   last: {
-  cover: "",
-  title: "",
-  date: ""
-}
+    cover: "",
+    title: "",
+    date: ""
+  }
 });
 
 export const api = {
@@ -27,37 +28,31 @@ export const DataProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
 
+  // Fonction pour récupérer les données
+  const getData = useCallback(async () => {
+    try {
+      const fetchedData = await api.loadData();
+      setData(fetchedData);
+    } catch (err) {
+      setError(err);
+    }
+  }, []);
 
-// Fonction pour récupérer les données
-const getData = useCallback(async () => {
-  try {
-    const fetchedData = await api.loadData();
-    console.log("Fetched Data:", fetchedData);
-    setData(fetchedData);
-  } catch (err) {
-    setError(err);
-  }
-}, []);
+  // Appel de getData lors du montage du composant
+  useEffect(() => {
+    getData();
+  }, [getData]);
 
-// Appel de getData lors du montage du composant
-useEffect(() => {    
-  getData();    
-}, [getData]);
+  const value = useMemo(() => ({
+    data,
+    error,
+    last: data && data.events && data.events.length > 0 
+      ? data.events[data.events.length - 1] 
+      : { cover: "/path/to/default/image.png", title: "Aucun événement", date: new Date() }
+  }), [data, error]);
 
-
-  
   return (
-    <DataContext.Provider
-      // eslint-disable-next-line react/jsx-no-constructed-context-values
-      value={{
-        data,
-        error,
-
-        // "last" est défini comme le dernier événement dans les données, s'il existe
-       last: data && data.events ? data.events[data.events.length - 1] : {}
-
-      }}
-    >
+    <DataContext.Provider value={value}>
       {children}
     </DataContext.Provider>
   );
