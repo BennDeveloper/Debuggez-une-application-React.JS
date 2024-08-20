@@ -47,7 +47,7 @@ export const DataProvider = ({ children }) => {
     data,
     error,
     last: data && data.events && data.events.length > 0 
-      ? data.events[data.events.length - 1] 
+      ? data.events.sort((a,b)=> new Date(a.date) - new Date(b.date) )[data.events.length - 1] 
       : { cover: "/path/to/default/image.png", title: "Aucun événement", date: new Date() }
   }), [data, error]);
 
